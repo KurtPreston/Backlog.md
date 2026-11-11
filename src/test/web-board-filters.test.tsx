@@ -103,6 +103,8 @@ const renderBoardPage = (
 		dateFormat?: string;
 		onRefreshData?: () => Promise<void>;
 		onTasksUpdated?: (tasks: Task[], requestTask: Task) => void;
+		searchQuery?: string;
+		onSearchQueryChange?: (query: string) => void;
 	} = {},
 ): HTMLElement => {
 	setupDom(url);
@@ -129,6 +131,8 @@ const renderBoardPage = (
 					dateFormat={options.dateFormat}
 					onRefreshData={options.onRefreshData}
 					onTasksUpdated={options.onTasksUpdated}
+					searchQuery={options.searchQuery ?? ""}
+					onSearchQueryChange={options.onSearchQueryChange ?? (() => {})}
 				/>
 			</BrowserRouter>,
 		);
@@ -342,6 +346,31 @@ describe("Web board filters", () => {
 
 		await setSelectValue(getSelectByFirstOption(container, "All priorities"), "high");
 		expect(new URLSearchParams(window.location.search).get("priority")).toBe("high");
+		expectVisibleTasks(container, ["Fix login bug"]);
+	});
+
+	it("shows only cards matching the sidebar search, combined with the board filters", async () => {
+		const searchQueries: string[] = [];
+		const container = renderBoardPage(undefined, {
+			searchQuery: "priority:medium",
+			onSearchQueryChange: (query) => searchQueries.push(query),
+		});
+		expectVisibleTasks(container, ["Write docs", "Triage unassigned issue"]);
+
+		await setSelectValue(getSelectByFirstOption(container, "All assignees"), "bob");
+		expectVisibleTasks(container, ["Write docs"]);
+
+		const clearButton = Array.from(container.querySelectorAll("button")).find(
+			(button) => button.textContent?.trim() === "Clear filters",
+		);
+		expect(clearButton).toBeTruthy();
+		await clickElement(clearButton as HTMLButtonElement);
+		expect(new URLSearchParams(window.location.search).get("assignee")).toBeNull();
+		expect(searchQueries).toEqual([""]);
+	});
+
+	it("matches sidebar search text against task titles", () => {
+		const container = renderBoardPage(undefined, { searchQuery: "login" });
 		expectVisibleTasks(container, ["Fix login bug"]);
 	});
 

@@ -261,6 +261,8 @@ interface SideNavigationProps {
 	error?: Error | null;
 	onRetry?: () => void;
 	onRefreshData: () => Promise<void>;
+	searchQuery: string;
+	onSearchQueryChange: (query: string) => void;
 }
 
 const SideNavigation = memo(function SideNavigation({ 
@@ -269,13 +271,14 @@ const SideNavigation = memo(function SideNavigation({
 	decisions, 
 	isLoading,
 	error,
-	onRetry
+	onRetry,
+	searchQuery,
+	onSearchQueryChange: setSearchQuery,
 }: SideNavigationProps) {
 	const [isCollapsed, setIsCollapsed] = useState(() => {
 		const saved = localStorage.getItem('sideNavCollapsed');
 		return saved ? JSON.parse(saved) : false;
 	});
-	const [searchQuery, setSearchQuery] = useState('');
 	const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
 	const [isSearching, setIsSearching] = useState(false);
 	const [searchError, setSearchError] = useState<string | null>(null);

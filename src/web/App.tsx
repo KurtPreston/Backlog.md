@@ -247,6 +247,8 @@ function AppContent() {
   const [milestoneEntities, setMilestoneEntities] = useState<Milestone[]>([]);
   const [archivedMilestones, setArchivedMilestones] = useState<Milestone[]>([]);
   const [showSuccessToast, setShowSuccessToast] = useState(false);
+  // The sidebar search box also filters the board, so both read this one query.
+  const [searchQuery, setSearchQuery] = useState('');
   const [taskConfirmation, setTaskConfirmation] = useState<{task: Task, isDraft: boolean} | null>(null);
   const [dependencyCleanupNotice, setDependencyCleanupNotice] = useState<string | null>(null);
   const dependencyCleanupTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -952,6 +954,8 @@ function AppContent() {
       availablePriorities={config?.priorities}
       availableTypes={availableTypes}
       availableProjects={availableProjects}
+      searchQuery={searchQuery}
+      onSearchQueryChange={setSearchQuery}
     />
   );
 
@@ -991,6 +995,8 @@ function AppContent() {
                 error={loadError}
                 onRefreshData={refreshData}
                 duplicateRepairPlan={duplicateRepairPlan}
+                searchQuery={searchQuery}
+                onSearchQueryChange={setSearchQuery}
               />
             }
           >

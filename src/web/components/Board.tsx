@@ -9,6 +9,8 @@ import { getPriorityOptions, normalizePriorityValue } from '../../utils/priority
 import { getProjectValues, matchesProjectFilter } from '../../utils/project-config';
 import { getTaskTypeValues, matchesTaskTypeFilter } from '../../utils/task-type-config';
 import { resolveTaskById } from '../../utils/task-id';
+import { createTaskSearchIndex } from '../../utils/task-search';
+import { parseSearchCommandQuery } from '../utils/search-command-query';
 import TaskColumn from './TaskColumn';
 import { BoardLoadingSkeleton } from './BoardLoadingSkeleton';
 import CleanupModal from './CleanupModal';
@@ -42,6 +44,8 @@ interface BoardProps {
   filterProject?: string;
   availableProjects?: string[];
   onFiltersChange?: (filters: { assignee: string; labels: string[]; priority: string; taskType: string; project: string }) => void;
+  searchQuery?: string;
+  onSearchQueryChange?: (query: string) => void;
   hideEmptyColumns?: boolean;
   dateFormat?: string;
 }
@@ -78,6 +82,8 @@ const Board: React.FC<BoardProps> = ({
   filterProject = '',
   availableProjects,
   onFiltersChange,
+  searchQuery = '',
+  onSearchQueryChange,
   hideEmptyColumns = false,
   dateFormat,
 }) => {
@@ -260,14 +266,25 @@ const Board: React.FC<BoardProps> = ({
     [filterLabels]
   );
 
+  const trimmedSearchQuery = searchQuery.trim();
   const hasActiveFilters =
     filterAssignee !== '' ||
     normalizedFilterLabels.length > 0 ||
     filterPriority !== '' ||
     filterType !== '' ||
-    filterProject !== '';
+    filterProject !== '' ||
+    trimmedSearchQuery !== '';
 
-  // Filter tasks by milestone when milestoneFilter is set, then apply assignee/label/priority filters
+  // Match the sidebar search the same way the search API does, so the board keeps the cards it lists
+  const searchIndex = useMemo(() => createTaskSearchIndex(tasks), [tasks]);
+  const searchMatchedTasks = useMemo(() => {
+    if (!trimmedSearchQuery) return null;
+    const { types, ...filters } = parseSearchCommandQuery(trimmedSearchQuery);
+    if (types && !types.includes('task')) return new Set<Task>();
+    return new Set(searchIndex.search(filters));
+  }, [searchIndex, trimmedSearchQuery]);
+
+  // Filter tasks by milestone when milestoneFilter is set, then apply assignee/label/priority/search filters
   const filteredTasks = useMemo(() => {
     let result = tasks;
     if (milestoneFilter) {
@@ -292,8 +309,11 @@ const Board: React.FC<BoardProps> = ({
     if (filterProject) {
       result = result.filter(task => matchesProjectFilter(task.project, filterProject));
     }
+    if (searchMatchedTasks) {
+      result = result.filter(task => searchMatchedTasks.has(task));
+    }
     return result;
-  }, [tasks, milestoneFilter, canonicalMilestoneFilter, milestoneAliasToCanonical, filterAssignee, normalizedFilterLabels, filterPriority, filterType, filterProject]);
+  }, [tasks, milestoneFilter, canonicalMilestoneFilter, milestoneAliasToCanonical, filterAssignee, normalizedFilterLabels, filterPriority, filterType, filterProject, searchMatchedTasks]);
 
   // Handle highlighting a task (opening its edit popup)
   useEffect(() => {
@@ -802,7 +822,10 @@ const Board: React.FC<BoardProps> = ({
                 {hasActiveFilters && (
                   <button
                     type="button"
-                    onClick={() => onFiltersChange({ assignee: '', labels: [], priority: '', taskType: '', project: '' })}
+                    onClick={() => {
+                      onFiltersChange({ assignee: '', labels: [], priority: '', taskType: '', project: '' });
+                      onSearchQueryChange?.('');
+                    }}
                     className={BOARD_FILTER_BUTTON_CLASS}
                   >
                     Clear filters
