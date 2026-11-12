@@ -18,6 +18,8 @@ interface LayoutProps {
 	error?: Error | null;
 	onRefreshData: () => Promise<void>;
 	duplicateRepairPlan?: DuplicateRepairPlan | null;
+	searchQuery: string;
+	onSearchQueryChange: (query: string) => void;
 }
 
 export default function Layout({
@@ -32,6 +34,8 @@ export default function Layout({
 	error,
 	onRefreshData,
 	duplicateRepairPlan = null,
+	searchQuery,
+	onSearchQueryChange,
 }: LayoutProps) {
 	return (
 		<div className="h-screen bg-gray-50 dark:bg-gray-900 flex overflow-hidden transition-colors duration-200">
@@ -44,6 +48,8 @@ export default function Layout({
 				error={error}
 				onRetry={onRefreshData}
 				onRefreshData={onRefreshData}
+				searchQuery={searchQuery}
+				onSearchQueryChange={onSearchQueryChange}
 			/>
 			<div className="flex-1 flex flex-col min-h-0 min-w-0">
 				<Navigation projectName={projectName} loadingMessage={loadingMessage} />

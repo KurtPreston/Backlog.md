@@ -301,6 +301,8 @@ describe("Web board project filter", () => {
 						onEditTask={() => {}}
 						onNewTask={() => {}}
 						availableProjects={availableProjects}
+						searchQuery=""
+						onSearchQueryChange={() => {}}
 					/>
 				</BrowserRouter>,
 			);

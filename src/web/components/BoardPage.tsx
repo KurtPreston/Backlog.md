@@ -26,6 +26,8 @@ interface BoardPageProps {
 	availablePriorities?: string[];
 	availableTypes?: string[];
 	availableProjects?: string[];
+	searchQuery: string;
+	onSearchQueryChange: (query: string) => void;
 }
 
 export default function BoardPage({
@@ -47,6 +49,8 @@ export default function BoardPage({
 	availablePriorities,
 	availableTypes,
 	availableProjects,
+	searchQuery,
+	onSearchQueryChange,
 }: BoardPageProps) {
 	const [searchParams, setSearchParams] = useSearchParams();
 	const [highlightTaskId, setHighlightTaskId] = useState<string | null>(null);
@@ -217,6 +221,8 @@ export default function BoardPage({
 				filterProject={filterProject}
 				availableProjects={availableProjects}
 				onFiltersChange={handleFiltersChange}
+				searchQuery={searchQuery}
+				onSearchQueryChange={onSearchQueryChange}
 				hideEmptyColumns={hideEmptyColumns}
 				dateFormat={dateFormat}
 			/>

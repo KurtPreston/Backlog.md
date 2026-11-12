@@ -27,6 +27,8 @@ const renderNavigation = (isLoading: boolean, taskCount: number, error?: Error):
 				error={error}
 				onRetry={async () => {}}
 				onRefreshData={async () => {}}
+				searchQuery=""
+				onSearchQueryChange={() => {}}
 			/>
 		</MemoryRouter>,
 	);
@@ -46,6 +48,8 @@ const renderBoard = (isLoading: boolean, error?: Error): string =>
 				isLoading={isLoading}
 				loadError={error}
 				onRefreshData={async () => {}}
+				searchQuery=""
+				onSearchQueryChange={() => {}}
 			/>
 		</MemoryRouter>,
 	);
